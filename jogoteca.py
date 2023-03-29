@@ -3,42 +3,18 @@ from flask_sqlalchemy import SQLAlchemy
 
 
 
-class Jogo:
-    def __init__(self, nome, categoria, console):
-        self.nome=nome
-        self.categoria=categoria
-        self.console=console
-
-jogo1 = Jogo('Tetris', 'Puzzle', 'Atari')
-jogo2 = Jogo('God of War', 'Hack n Slash', 'PS2')
-jogo3 = Jogo('Mortal Kombat', 'Luta', 'PS2')
-lista = [jogo1, jogo2, jogo3]
-
-class Usuario:
-    def __init__(self, nome, nickname, senha):
-        self.nome = nome
-        self.nickname = nickname
-        self.senha = senha
-
-usuario1 = Usuario("Pedro Pena", "Pena", "pedropena")
-usuario2 = Usuario("Amanda Paiva", "Manda", "euamopraia")
-usuario3 = Usuario("German Cano", "Cano", "fazol")
-
-usuarios = { usuario1.nickname : usuario1,
-             usuario2.nickname : usuario2,
-             usuario3.nickname : usuario3 }
-
-
 app = Flask(__name__)
 app.secret_key = 'cano'
+
 app.config['SQLALCHEMY_DATABASE_URI'] = \
     '{SGBD}://{usuario}:{senha}@{servidor}/{database}'.format(
-    SGBD = 'mysql+mysqlconnector',
-    usuario = 'root',
-    senha = 'root',
-    servidor = 'localhost',
-    database = 'jogoteca')
+        SGBD = 'mysql+mysqlconnector',
+        usuario = 'root',
+        senha = 'root',
+        servidor = 'localhost',
+        database = 'jogoteca'
 
+     )
 
 
 db = SQLAlchemy(app)
@@ -76,6 +52,7 @@ class Usuarios(db.Model):
 
 @app.route('/')
 def index():
+    lista = Jogos.query.order_by(Jogos.id)
     return render_template('lista.html', titulo='Jogos', jogos=lista)
 
 
@@ -93,9 +70,19 @@ def criar():
     nome = request.form['nome']
     categoria = request.form['categoria']
     console = request.form['console']
-    jogo = Jogo(nome, categoria, console)
-    lista.append(jogo)
+
+    jogo = Jogos.query.filter_by(nome=nome).first()
+
+    if jogo:
+        flash('Jogo já existente!')
+        return redirect(url_for('index'))
+
+    novo_jogo = Jogos(nome=nome, categoria=categoria, console=console)
+    db.session.add(novo_jogo)
+    db.session.commit()
+
     return redirect(url_for('index'))
+
 
 
 
@@ -108,8 +95,8 @@ def login():
 
 @app.route('/autenticar', methods=['POST',])
 def autenticar():
-    if request.form['usuario'] in usuarios:
-        usuario = usuarios[request.form['usuario']]
+    usuario = Usuarios.query.filter_by(nickname=request.form['usuario']).first()
+    if usuario:
         if request.form['senha'] == usuario.senha:
             session['usuario_logado'] = usuario.nickname
             flash(usuario.nickname + ' logado com sucesso!')
