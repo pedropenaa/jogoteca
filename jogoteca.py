@@ -1,10 +1,11 @@
+import os
 from flask import Flask, render_template, request, redirect, session, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 
 
 app = Flask(__name__)
-app.secret_key = 'cano'
+app.secret_key = os.urandom(12)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = \
     '{SGBD}://{usuario}:{senha}@{servidor}/{database}'.format(
