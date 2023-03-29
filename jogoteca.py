@@ -32,11 +32,44 @@ usuarios = { usuario1.nickname : usuario1,
 app = Flask(__name__)
 app.secret_key = 'cano'
 app.config['SQLALCHEMY_DATABASE_URI'] = \
-    'SGBD://usuario:senha@servidor/database'
+    '{SGBD}://{usuario}:{senha}@{servidor}/{database}'.format(
+    SGBD = 'mysql+mysqlconnector',
+    usuario = 'root',
+    senha = 'root',
+    servidor = 'localhost',
+    database = 'jogoteca')
 
 
 
 db = SQLAlchemy(app)
+
+
+
+class Jogos(db.Model):
+    id        = db.Column(db.Integer, primary_key = True, autoincrement = True)
+    nome      = db.Column(db.String(50), nullable = False)
+    categoria = db.Column(db.String(40), nullable = False)
+    console   = db.Column(db.String(20), nullable = False)
+
+
+    def __repr__(self) -> str:
+        return '<Name %r>' % self.name
+    
+
+
+
+class Usuarios(db.Model):
+    nome     = db.Column(db.String(50),  nullable = False)
+    nickname = db.Column(db.String(40), primary_key = True)
+    senha    = db.Column(db.String(100), nullable = False)
+
+
+    def __repr__(self) -> str:
+        return '<Name %r>' % self.name
+   
+
+   
+
 
 
 
